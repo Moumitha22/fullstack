@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-MoumithaApplication<moumitha>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.educonnect.moumitha.MoumithaApplication",
+            "projectName": "moumitha",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
