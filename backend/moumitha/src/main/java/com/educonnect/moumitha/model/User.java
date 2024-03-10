@@ -9,7 +9,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.educonnect.moumitha.enumerated.Role;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -53,6 +56,14 @@ public class User implements UserDetails{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "student_id", referencedColumnName = "id")
+    private Student student;
+   
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "institute_id", referencedColumnName = "id")
+    private Institute institute;
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();        
@@ -86,8 +97,5 @@ public class User implements UserDetails{
     @Override
     public boolean isEnabled() {
         return true;
-    }
-    
-
-    
+    }    
 }

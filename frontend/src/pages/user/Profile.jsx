@@ -1,28 +1,89 @@
-import { useState } from "react";
-
-import User from "../../assets/images/User.jpg"
-import ProfileCourses from "../../components/ui/user/ProfileCourses"
+import { useState, useEffect } from "react";
+import User from "../../assets/images/User.jpg";
+import ProfileCourses from "../../components/ui/user/ProfileCourses";
+import { getStudent, updateStudentDetails } from "../../services/student";
+import { useSelector } from "react-redux";
 
 function Profile() {
-  const [personalState, setPersonalState] = useState(true);
-  const [eduState, setEduState] = useState(true);
+  const email = useSelector(state => state.auth.email)
+  const [student, setStudent] = useState({});
+  const [editMode, setEditMode] = useState(false);
+  const [eduEditMode, setEduEditMode] = useState(false);
+  const [editedFields, setEditedFields] = useState(null);
+
+
+  useEffect(() => {
+    const fetchStudentDetails = async () => {
+      try {
+        const response = await getStudent(email);
+        setStudent(response.data);
+      } catch (error) {
+        console.error("Error fetching student details:", error);
+      }
+    };
+
+    fetchStudentDetails();
+  }, []);
+
+  const handleEditClick = () => {
+    setEditedFields(student); 
+    setEditMode(true);
+  };
+
+  const handleEduEditClick = () => {
+    setEditedFields(student); 
+    setEduEditMode(true);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedFields((prevFields) => ({
+      ...prevFields,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveClick = async () => {
+    try {    
+      console.log(editedFields)
+      await updateStudentDetails(editedFields);
+      const updatedResponse = await getStudent(email);
+      setStudent(updatedResponse.data);
+      setStudent(editedFields)
+      setEditMode(false);
+    } catch (error) {
+      console.error("Error updating student details:", error);
+    }
+  };
+
+  const handleEduSaveClick = async () => {
+    try {    
+      console.log(editedFields)
+      await updateStudentDetails(editedFields);
+      const updatedResponse = await getStudent(email);
+      setStudent(updatedResponse.data);
+      setStudent(editedFields)
+      setEduEditMode(false);
+    } catch (error) {
+      console.error("Error updating student details:", error);
+    }
+  };
 
   return (
     <div className="bg-violet-200 min-h-screen p-12 font-mono">
       <div className="max-w-xl mx-auto"> 
-      <div className="text-2xl font-bold flex justify-center mb-5 tracking-tight">
-        <p>Profile</p>
-      </div>
-      <div className="bg-white border border-gray-200 rounded-lg p-12">
-        <div className="flex justify-center">
-          <div className="relative">
-            <img
-              src={User}
-              className="rounded-full w-48 h-48 mb-4"
-              alt="User"
-            />
-
-            <div className="absolute bottom-0 right-0 p-2 flex flex-row">
+        <div className="text-2xl font-bold flex justify-center mb-5 tracking-tight">
+          <p>Profile</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-12">
+          <div className="flex justify-center">
+            <div className="relative">
+              <img
+                src={User}
+                className="rounded-full w-48 h-48 mb-4"
+                alt="User"
+              />
+              <div className="absolute bottom-0 right-0 p-2 flex flex-row">
               <label
                 htmlFor="fileInput"
                 className="cursor-pointer text-white bg-violet-500 rounded-full p-2"
@@ -31,222 +92,306 @@ function Profile() {
               </label>
               <input id="fileInput" type="file" className="hidden" />
             </div>
-          </div>
-        </div>
 
-        <div className="mt-10 flex  flex-col space-y-8">
-          <div className="border border-gray-300 p-8 rounded-lg">
-            <div className="mb-6">
-              <div className="flex flex-row justify-between items-center  mb-2">
-                <p className="font-bold text-2xl">Personal Information:</p>
-                {personalState ? (
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-col space-y-8">
+            <div className="border border-gray-300 p-8 rounded-lg">
+              <div className="mb-6">
+                <div className="flex flex-row justify-between items-center  mb-2">
+                  <p className="font-bold text-2xl">Personal Information:</p>
                   <button
-                    className="bg-violet-600 hover:bg-violet-800 border border-gray-200 rounded-lg p-1 px-3 text-white"
-                    onClick={() => setPersonalState(!personalState)}
+                    className={editMode ? "bg-green-600 hover:bg-green-800 border border-gray-200 rounded-lg p-1 px-3 text-white" : "bg-violet-600 hover:bg-violet-800 border border-gray-200 rounded-lg p-1 px-3 text-white"}
+                    onClick={editMode ? handleSaveClick : handleEditClick}
                   >
-                    <div className="flex flex-row space-x-2">
-                      <div className="mt-1">
-                        <PencilSVG />
+                    {editMode ? (
+                      <div className="flex flex-row space-x-2">
+                        <div className="mt-1">
+                          <SaveSVG />
+                        </div>
+                        <p>Save</p>
                       </div>
-                      <p>Edit</p>
-                    </div>
+                    ) : (
+                      <div className="flex flex-row space-x-2">
+                        <div className="mt-1">
+                          <PencilSVG />
+                        </div>
+                        <p>Edit</p>
+                      </div>
+                    )}
                   </button>
+                </div>
+                <hr></hr>
+              </div>
+              {editMode ? (
+                  <div className="grid grid-cols-2">
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">Name</p>
+                        <input
+                          id="nameInput"
+                          name="name"
+                          type="text"
+                          value={editedFields.name}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="Moumitha R"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">DOB</p>
+                        <input
+                          id="dobInput"
+                          name="dob"
+                          type="date"
+                          value={editedFields.dob}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="21/10/2003"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">Fathers Name</p>
+                        <input
+                          id="fatherNameInput"
+                          name="fatherName"
+                          type="text"
+                          value={editedFields.fatherName}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="Moumitha R"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">Mobile</p>
+                        <input
+                          id="mobileInput"
+                          name="mobile"
+                          type="tel"
+                          value={editedFields.mobile}
+                          onChange={handleChange}
+                          pattern="[0-9]{10}"
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="9876543210"
+                        />
+                      </div>                    
+                    </div>
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">Email</p>
+                        <input
+                          id="emailInput"
+                          name="email"
+                          type="email"
+                          value={editedFields.email}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="moumi22@gmail.com"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">Gender</p>
+                        <select
+                          id="genderInput"
+                          name="gender"
+                          value={editedFields.gender}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                        >
+                          <option value="Female">Female</option>
+                          <option value="Male">Male</option>
+                          <option value="Prefer not to say">Prefer not to say</option>
+                        </select>{" "}
+                      </div>
+                      <div>
+                        <p className="font-bold">Mothers Name</p>
+                        <input
+                          id="motherNameInput"
+                          name="motherName"
+                          type="text"
+                          value={editedFields.motherName}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="Moumitha R"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">Aadhar</p>
+                        <input
+                          id="aadharNoInput"
+                          name="aadharNo"
+                          type="text"
+                          value={editedFields.aadharNo}
+                          onChange={handleChange}
+                          pattern="[0-9]{12}"
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                          // placeholder="9876543210"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 ) : (
-                  <button
-                    className="bg-green-600 hover:bg-green-800 border border-gray-200 rounded-lg p-1 px-3 text-white"
-                    onClick={() => setPersonalState(!personalState)}
-                  >
-                    <div className="flex flex-row space-x-2">
-                      <div className="mt-1">
-                        <SaveSVG />
+                  <div className="grid grid-cols-2">
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">Name</p>
+                        <p className="">{student.name}</p>
                       </div>
-                      <p>Save</p>
+                      <div>
+                        <p className="font-bold">DOB</p>
+                        <p className="">{student.dob}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Fathers Name</p>
+                        <p className="">{student.fatherName}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Mobile</p>
+                        <p className="">9876543210</p>
+                      </div>
                     </div>
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">Email</p>
+                        <p className="">{student.email}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Gender</p>
+                        <p className="">{student.gender}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Mothers Name</p>
+                        <p className="">{student.motherName}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Aadhar</p>
+                        <p className="">{student.aadharNo}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+            </div>
+            <div className="border border-gray-300 p-6 rounded-lg">
+              <div className="mb-6">
+                <div className="flex flex-row justify-between items-center  mb-2">
+                  <p className="font-bold text-2xl">Educational Information:</p>
+                  <button
+                    className={eduEditMode ? "bg-green-600 hover:bg-green-800 border border-gray-200 rounded-lg p-1 px-3 text-white" : "bg-violet-600 hover:bg-violet-800 border border-gray-200 rounded-lg p-1 px-3 text-white"}
+                    onClick={eduEditMode ? handleEduSaveClick : handleEduEditClick}
+                  >
+                    {eduEditMode ? (
+                      <div className="flex flex-row space-x-2">
+                        <div className="mt-1">
+                          <SaveSVG />
+                        </div>
+                        <p>Save</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-row space-x-2">
+                        <div className="mt-1">
+                          <PencilSVG />
+                        </div>
+                        <p>Edit</p>
+                      </div>
+                    )}
                   </button>
+                </div>
+                <hr></hr>
+              </div>
+              <div>
+                {eduEditMode ? (
+                  <div className="grid grid-cols-2">
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">10th Board</p>
+                        <input
+                          id="tenthBoardInput"
+                          name="tenthBoard"
+                          type="text"
+                          value={editedFields.tenthBoard}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">12th Board</p>
+                        <input
+                          id="twelthBoardInput"
+                          name="twelthBoard"
+                          type="text"
+                          value={editedFields.twelthBoard}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">10th Percentage</p>
+                        <input
+                          id="tenthPercentageInput"
+                          name="tenthPercentage"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editedFields.tenthPercentage}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold">12th/Diploma Percentage</p>
+                        <input
+                          id="twelthPercentageInput"
+                          name="twelthPercentage"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editedFields.twelthPercentage}
+                          onChange={handleChange}
+                          className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2">
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">10th Board</p>
+                        <p className="">{student.tenthBoard}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">12th Board</p>
+                        <p className="">{student.twelthBoard}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-6">
+                      <div>
+                        <p className="font-bold">10th Percentage</p>
+                        <p className="">{student.tenthPercentage}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">12th/Diploma Percentage</p>
+                        <p className="">{student.twelthPercentage}</p>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              <hr></hr>
-            </div>
-            <div>
-              {personalState ? (
-                <div className="grid grid-cols-2">
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">Name</p>
-                      <p className="">Moumitha R</p>
-                    </div>
-                    <div>
-                      <p className="font-bold">DOB</p>
-                      <p className="">21/10/2003</p>
-                    </div>
-                    <div>
-                      <p className="font-bold">Gender</p>
-                      <p className="">Female</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">Email</p>
-                      <p className="">moumi22@gmail.com</p>
-                    </div>
-                    <div>
-                      <p className="font-bold">Mobile</p>
-                      <p className="">9876543210</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2">
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">Name</p>
-                      <input
-                        type="text"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                        placeholder="Moumitha R"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold">DOB</p>
-                      <input
-                        type="text"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                        placeholder="21/10/2003"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold">Gender</p>
-                      <select
-                        type="text"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                      >
-                        <option value="F">Female</option>
-                        <option value="M">Male</option>
-                        <option value="O">Prefer not to say</option>
-                      </select>{" "}
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">Email</p>
-                      <input
-                        type="email"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                        placeholder="moumi22@gmail.com"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold">Mobile</p>
-                      <input
-                        type="text"
-                        pattern="[0-9]{10}"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                        placeholder="9876543210"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-
-          <div className="border border-gray-300 p-6 rounded-lg">
-            <div className="mb-6">
-              <div className="flex flex-row justify-between items-center  mb-2">
-                <p className="font-bold text-2xl">Educational Information:</p>
-                {eduState ? (
-                  <button
-                    className="bg-violet-600 hover:bg-violet-700 border border-gray-200 rounded-lg p-1 px-3 text-white"
-                    onClick={() => setEduState(!eduState)}
-                  >
-                    <div className="flex flex-row space-x-2">
-                      <div className="mt-1">
-                        <PencilSVG />
-                      </div>
-                      <p>Edit</p>
-                    </div>
-                  </button>
-                ) : (
-                  <button
-                    className="bg-green-600 hover:bg-green-800 border border-gray-200 rounded-lg p-1 px-3 text-white"
-                    onClick={() => setEduState(!eduState)}
-                  >
-                    <div className="flex flex-row space-x-2">
-                      <div className="mt-1">
-                        <SaveSVG />
-                      </div>
-                      <p>Save</p>
-                    </div>
-                  </button>
-                )}
-              </div>
-              <hr></hr>
+          <div>
+            <div className="flex justify-center mb-8 font-bold text-lg mt-12">
+              <h1>Course Status</h1>
             </div>
-            <div>
-              {eduState ? (
-                <div className="grid grid-cols-2">
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">10th Percentage</p>
-                      <p className="">95%</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">12th/Diploma Percentage</p>
-                      <p className="">94%</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2">
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">10th Percentage</p>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                        placeholder="95"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6">
-                    <div>
-                      <p className="font-bold">12th/Diploma Percentage</p>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        className="b-2 text-sm text-gray-900 rounded-md p-1 border-2 border-gray-600"
-                        placeholder="94"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="flex flex-col space-y-5">
+              <ProfileCourses />
+              <ProfileCourses />
             </div>
           </div>
         </div>
-        {/* <div className="flex items-center justify-center mb-10">
-          <button className="bg-red-600 hover:bg-red-800 border border-gray-200 rounded-lg p-1 px-3 text-white mt-8">
-            Revoke Access
-          </button>
-        </div> */}
-        <div>
-          {/* <hr className="bg-black border border-black mb-8"></hr> */}
-
-          <div className="flex justify-center mb-8 font-bold text-lg mt-12">
-            <h1>Course Status</h1>
-          </div>
-
-          <div className="flex flex-col space-y-5">
-            <ProfileCourses />
-            <ProfileCourses />
-          </div>
-        </div>
-      </div>
       </div>
     </div>
   );
@@ -281,6 +426,8 @@ const PencilSVG = () => {
   );
 };
 
+
+
 const SaveSVG = () => {
   return (
     <svg
@@ -310,5 +457,6 @@ const SaveSVG = () => {
     </svg>
   );
 };
+
 
 export default Profile;

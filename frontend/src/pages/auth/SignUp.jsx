@@ -1,10 +1,8 @@
-// import {FaUser, FaLock,FaMobileAlt } from "react-icons/fa";
-// import { MdEmail } from "react-icons/md";
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Students from "../../assets/images/cap.jpg";
-// import Students from "../../assets/images/Students2.jpg";
-import AppLogo from "../../assets/images/AppLogo.png"
+import AppLogo from "../../assets/images/AppLogo.png";
+import { register } from '../../services/auth';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +10,10 @@ const SignUp = () => {
     email: "",
     mobile: "",
     password: "",
-    confirmPassword: ""
+    role: "" 
   });
+
+  const navigate = useNavigate();
 
   const [errors, setErrors] = useState({});
 
@@ -23,39 +23,91 @@ const SignUp = () => {
       ...formData,
       [name]: value
     });
+  
+    let newErrors = { ...errors };
+  
+    switch (name) {
+      case 'name':
+        newErrors.name = validateName(value); 
+        break;
+      case 'email':
+        newErrors.email = validateEmail(value); 
+        break;
+      case 'mobile':
+        newErrors.mobile = validateMobile(value); 
+        break;
+      case 'password':
+        newErrors.password = validatePassword(value);
+        break;
+      case 'role':
+        newErrors.role = validateRole(value); 
+        break;
+      default:
+        break;
+    }
+  
+    setErrors(newErrors); 
+  };
+  
+
+  const validateName = (name) => {
+    if (!name.trim()) {
+      return "Name is required";
+    }
+    return "";
   };
 
-  const handleSubmit = async() => {
-    // e.preventDefault();
-    const errors = {};
-    if (!formData.name.trim()) {
-      errors.name = "Name is required";
+  const validateEmail = (email) => {
+    if (!email.trim()) {
+      return "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      return "Email is invalid";
     }
-    if (!formData.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "Email is invalid";
-    }
-    if (!formData.mobile.trim()) {
-        errors.mobile = "Mobile number is required";
-    } else if (!/^\d{10}$/.test(formData.mobile)) {
-    errors.mobile = "Mobile number must be 10 digits";
-    }
-    if (!formData.password.trim()) {
-    errors.password = "Password is required";
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/.test(formData.password)) {
-    errors.password =
-        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number";
-    }
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
-    setErrors(errors);
-
-    if (Object.keys(errors).length === 0) {
-      console.log("Form submitted:", formData);
-    }
+    return "";
   };
+
+  const validateMobile = (mobile) => {
+    if (!mobile.trim()) {
+        return "Mobile number is required";
+    } else if (!/^[1-9]{1}[0-9]{9}$/.test(mobile)) {
+      return "Enter a valid Mobile number";
+    }
+    return "";
+  };
+
+  const validatePassword = (password) => {
+    if (!password.trim()) {
+      return "Password is required";
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/.test(password)) {
+      return "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter,one special character and one number";
+    }
+    return "";
+  };
+
+  const validateRole = (role) => {
+    if (!role) {
+      return "Role is required";
+    }
+    return "";
+  };
+
+  const handleSubmit = async(e) => {
+      e.preventDefault();
+      // eslint-disable-next-line no-unused-vars
+      // const emptyFields = Object.entries(formData).filter(([_key, value]) => value.trim() === "");
+      // if (emptyFields.length > 0) {
+      //   const newErrors = {};
+      //   emptyFields.forEach(([key]) => {
+      //     newErrors[key] = `${key.charAt(0).toUpperCase() + key.slice(1)} is required`;
+      //   });
+      //   setErrors(newErrors);
+      //   return;
+      // }   
+      console.log(formData);  
+      register(formData);
+      navigate('/signin');     
+  };
+
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -65,11 +117,11 @@ const SignUp = () => {
         </div>
         <div className="w-full md:w-1/2 lg:w-1/2 px-10 py-7">
             <div className="text-center">
-              <img className="h-10 w-40 mx-auto" src={AppLogo} alt="Logo" />
-              <h2 className="mt-6 text-3xl font-Poppins font-bold text-violet-450">Create your account!</h2>
+              <img className="h-10 w-52 mx-auto" src={AppLogo} alt="Logo" />
+              <h2 className="mt-6 text-3xl font-bold text-violet-450">Create your account!</h2>
             </div>
-            <div className="mt-8 font-Poppins">
-              <form onSubmit={handleSubmit} className="space-y-6 ">
+            <div className="mt-8 font-[Poppins]">
+              <form className="space-y-4 " onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                     Full Name
@@ -79,7 +131,6 @@ const SignUp = () => {
                       id="name"
                       name="name"
                       type="text"
-                      autoComplete="name"
                       required
                       onChange={handleChange}
                       value={formData.name}
@@ -99,7 +150,6 @@ const SignUp = () => {
                       id="email"
                       name="email"
                       type="email"
-                      autoComplete="email"
                       required
                       onChange={handleChange}
                       value={formData.email}
@@ -119,7 +169,6 @@ const SignUp = () => {
                       id="mobile"
                       name="mobile"
                       type="tel"
-                      autoComplete="tel"
                       required
                       onChange={handleChange}
                       value={formData.mobile}
@@ -139,7 +188,6 @@ const SignUp = () => {
                       id="password"
                       name="password"
                       type="password"
-                      autoComplete="new-password"
                       required
                       onChange={handleChange}
                       value={formData.password}
@@ -151,29 +199,32 @@ const SignUp = () => {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                    Confirm Password
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                    Role
                   </label>
                   <div className="mt-1">
-                    <input
-                      id="confirm-password"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
+                    <select
+                      id="role"
+                      name="role"
                       required
                       onChange={handleChange}
-                      value={formData.confirmPassword}
+                      value={formData.role}
                       className={`appearance-none block w-full px-3 py-2 border ${
-                        errors.confirmPassword ? "border-red-500" : "border-gray-300"
+                        errors.role ? "border-red-500" : "border-gray-300"
                       } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm`}
-                    />
-                    {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                    >
+                      <option value="">Select Role</option>
+                      <option value="STUDENT">Student</option>
+                      <option value="INSTITUTE">Institute</option>
+                    </select>
+                    {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
                   </div>
                 </div>
-                <div>
+                
+                <div className="">
                   <button
                     type="submit"
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-violet-500 hover:bg-violet-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+                    className="w-full mt-6 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-violet-500 hover:bg-violet-600 "
                   >
                     Sign up
                   </button>
@@ -194,4 +245,3 @@ const SignUp = () => {
 };
 
 export default SignUp;
-

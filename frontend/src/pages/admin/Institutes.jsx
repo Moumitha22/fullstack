@@ -1,9 +1,29 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { getAllInstitutes } from "../../services/institute";
 import InstituteCard from "../../components/ui/admin/InstituteCard"
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { setInstitute } from "../../redux/authSlice";
 
 function Institutes() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formVisibility, setFormVisibility] = useState(false);
+  const [institutes, setInstitutes] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getAllInstitutes();
+        console.log(response.data);
+        setInstitutes(response.data);
+      } catch (error) {
+        console.error("Error fetching institutes:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const openForm = () => {
     setFormVisibility(true);
@@ -12,6 +32,12 @@ function Institutes() {
   const closeForm = () => {
     setFormVisibility(false);
   }
+
+  const handleViewInstitute = (institute) => {
+    console.log(institute);
+    dispatch(setInstitute(institute.email));
+    navigate(`/admin/institute`);
+  };
 
   return (
     <div className="bg-violet-200 min-h-screen p-12">
@@ -43,14 +69,9 @@ function Institutes() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-          <InstituteCard />
-          <InstituteCard />
-          <InstituteCard />
-          <InstituteCard />
-          <InstituteCard />
-          <InstituteCard />
-          <InstituteCard />
-          <InstituteCard />
+        {institutes.map((institute, index) => (
+          <InstituteCard key={index} institute={institute} onViewInstitute ={() => handleViewInstitute(institute)}/>
+        ))}
       </div>
 
       

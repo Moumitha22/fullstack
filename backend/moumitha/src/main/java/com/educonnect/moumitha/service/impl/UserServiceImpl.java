@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import com.educonnect.moumitha.dto.request.RegisterRequest;
 import com.educonnect.moumitha.dto.response.MessageResponse;
 import com.educonnect.moumitha.dto.response.UserFetchResponse;
+import com.educonnect.moumitha.exception.NotFoundException;
 import com.educonnect.moumitha.model.User;
 import com.educonnect.moumitha.repository.UserRepository;
 import com.educonnect.moumitha.service.UserService;
-import com.educonnect.moumitha.utils.UserNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,11 +48,11 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserFetchResponse getById(String id) throws UserNotFoundException{
+    public UserFetchResponse getById(String id) throws NotFoundException{
         Optional<User> isUser = userRepository.findById(id);
         
         if(isUser.isEmpty()){
-            throw new UserNotFoundException("User not found with id "+id);
+            throw new NotFoundException("User not found with id "+id);
         }
         return UserFetchResponse.builder().name(isUser.get().getName()).email(isUser.get().getEmail()).password(isUser.get().getPassword()).mobile(isUser.get().getMobile()).build();
     }

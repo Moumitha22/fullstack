@@ -5,14 +5,14 @@ import java.util.List;
 import com.educonnect.moumitha.dto.request.RegisterRequest;
 import com.educonnect.moumitha.dto.response.MessageResponse;
 import com.educonnect.moumitha.dto.response.UserFetchResponse;
-import com.educonnect.moumitha.utils.UserNotFoundException;
+import com.educonnect.moumitha.exception.NotFoundException;
 
 public interface UserService {
     MessageResponse register(RegisterRequest request);
 
     List<UserFetchResponse> getAll();
 
-    UserFetchResponse getById(String id) throws UserNotFoundException;
+    UserFetchResponse getById(String id) throws NotFoundException;
 
     MessageResponse deleteByEmail(String email);
 

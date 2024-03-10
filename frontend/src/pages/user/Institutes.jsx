@@ -1,6 +1,24 @@
 import InstituteCard from "../../components/ui/user/InstituteCard";
+import { useState, useEffect } from "react";
+import { getAllInstitutes } from "../../services/institute";
 
 function Institutes() {
+  // Define state to hold institute data
+  const [institutes, setInstitutes] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getAllInstitutes();
+        setInstitutes(response.data);
+      } catch (error) {
+        console.error("Error fetching institutes:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="bg-violet-200 min-h-screen p-12">
       <div className="items-center">
@@ -13,17 +31,13 @@ function Institutes() {
                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
             </svg>
             <span className="sr-only">Search</span>
-        </button>
+          </button>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-        <InstituteCard />
-        <InstituteCard />
-        <InstituteCard />
-        <InstituteCard />
-        <InstituteCard />
-        <InstituteCard />
-        <InstituteCard />
+        {institutes.map((institute, index) => (
+          <InstituteCard key={index} institute={institute} />
+        ))}
       </div>
     </div>
   );

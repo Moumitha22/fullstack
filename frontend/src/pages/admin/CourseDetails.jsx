@@ -1,14 +1,34 @@
+import { useState, useEffect } from "react";
+import { useSelector} from 'react-redux';
+import { getCourse }from '../../services/course'
+
 function CourseDetail() {
+    const courseId = useSelector(state => state.auth.course);
+    const [course,setCourse] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            console.log(courseId);
+            const response = await getCourse(courseId);
+            console.log(response.data);
+            setCourse(response.data);
+          } catch (error) {
+            console.error("Error fetching courses:", error);
+          }
+        };    
+        fetchData();
+    }, []);
 
     return (
         <div className="bg-violet-200 p-12 min-h-screen flex items-center">
             <div className="bg-white rounded-xl border border-gray-200 min-w-screen min-h-fit px-32 p-20 font-Poppins">
                 <div className="col-span-2 flex justify-center items-center">
+                    {course && (
                     <div>
-
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tighter mb-1">Bachelor of Engineering (B.E.) in Computer Science and Engineering</h1>
-                            <p className="font-normal tracking-tighter mb-10">Sri Krishna College of Engineering and Technology</p>
+                            <h1 className="text-3xl font-bold tracking-tighter mb-1">Bachelor of Engineering (B.E.) in {course.courseName}</h1>
+                            <p className="font-normal tracking-tighter mb-10">{course.instituteName}</p>
                         </div>
 
                         <div>
@@ -50,6 +70,7 @@ function CourseDetail() {
                             </button> 
                         </div>
                     </div>
+                    )}
                 </div>
             </div>
 

@@ -1,9 +1,27 @@
-import { useState } from "react";
-
+import { useState , useEffect} from "react";
+import { getAllCourses } from "../../services/course";
 import CourseCard from "../../components/ui/admin/CourseCard";
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { setCourse } from "../../redux/authSlice";
 
-function Courses() {
+function Courses() {  
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formVisibility, setFormVisibility] = useState(false);
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const response = await getAllCourses();
+        setCourses(response.data); 
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    }
+    fetchCourses();
+  }, []); 
 
   const openForm = () => {
     setFormVisibility(true);
@@ -12,6 +30,12 @@ function Courses() {
   const closeForm = () => {
     setFormVisibility(false);
   }
+
+  const handleViewCourse = (course) => {
+    console.log(course);
+    dispatch(setCourse("218e6d48-ca65-44f6-82a3-f2f8441388c7"));
+    navigate(`/admin/course`);
+  };
 
   return (
     <div className="bg-violet-200 min-h-screen p-12">
@@ -44,12 +68,9 @@ function Courses() {
       </div>
       <div className="flex flex-wrap justify-center">
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
-         <CourseCard />
-          <CourseCard />
-          <CourseCard />
-          <CourseCard />
-          <CourseCard />
-          <CourseCard />
+        {courses.map((course,index) => (
+            <CourseCard key={index} course={course} onViewCourse ={() => handleViewCourse(course)}/>
+          ))}
       </div>
       </div>
 

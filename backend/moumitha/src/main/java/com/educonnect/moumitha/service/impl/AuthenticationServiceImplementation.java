@@ -10,11 +10,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.educonnect.moumitha.dto.request.ForgotPasswordRequest;
 import com.educonnect.moumitha.dto.request.LoginRequest;
 import com.educonnect.moumitha.dto.request.RegisterRequest;
 import com.educonnect.moumitha.dto.response.LoginResponse;
 import com.educonnect.moumitha.dto.response.MessageResponse;
 import com.educonnect.moumitha.enumerated.Role;
+import com.educonnect.moumitha.model.Institute;
+import com.educonnect.moumitha.model.Student;
 import com.educonnect.moumitha.model.Token;
 import com.educonnect.moumitha.model.User;
 import com.educonnect.moumitha.repository.TokenRepository;
@@ -35,22 +38,62 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
+
     @Override
     public MessageResponse register(RegisterRequest request) {
         Optional<User> isUser = userRepository.findByEmail(request.getEmail());
-        if(isUser.isPresent()){
-            return MessageResponse.builder().message("User already exists with email "+request.getEmail()).build();
+
+        if(isUser.isPresent()) {
+            return MessageResponse.builder()
+                                    .message("User already exists with email " + request.getEmail())
+                                    .build();
         }
-        var user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .mobile(request.getMobile())
-                .role(Role.valueOf(request.getRole()))
-                .build();
-        userRepository.save(user);
-        return MessageResponse.builder().message("User registered successfully").build();   
+
+        Object user = null;
+
+        if(request.getRole().equals("STUDENT")) {
+            var details = Student.builder().email(request.getEmail()).build();
+            user = User.builder()
+                            .name(request.getName())
+                            .email(request.getEmail())
+                            .password(passwordEncoder.encode(request.getPassword()))
+                            .role(Role.valueOf(request.getRole()))
+                            .mobile(request.getMobile())
+                            .student((Student)details)
+                            .build();
+        }
+        else if(request.getRole().equals("INSTITUTE")) {
+            var details = Institute.builder()
+                            .instituteName(request.getName())
+                            .email(request.getEmail())
+                            .mobile(request.getMobile())
+                            .build();
+            user = User.builder()
+                            .name(request.getName())
+                            .email(request.getEmail())
+                            .password(passwordEncoder.encode(request.getPassword()))
+                            .role(Role.valueOf(request.getRole()))
+                            .mobile(request.getMobile())
+                            .institute((Institute)details)
+                            .build();
+        }
+        else {
+            user = User.builder()
+                            .name(request.getName())
+                            .email(request.getEmail())
+                            .password(passwordEncoder.encode(request.getPassword()))
+                            .role(Role.valueOf(request.getRole()))
+                            .mobile(request.getMobile())
+                            .build();
+        }
+
+        userRepository.save((User)user);
+
+        return MessageResponse.builder()
+                                .message("User registered successfully")
+                                .build();
     }
+
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -94,6 +137,23 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
             token.setRevoked(true);
         });
         tokenRepository.saveAll(validUserTokens);
+    }
+
+    @Override
+    public MessageResponse forgotPassword(ForgotPasswordRequest request) {
+        var user = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email "+request.getEmail()));
+
+        if(!passwordEncoder.matches(request.getCurrentPassword(),user.getPassword())){
+            return MessageResponse.builder().message("Password incorrect").build();
+        }
+
+        if(!request.getNewPassword().equals(request.getConfirmPassword())){
+            return MessageResponse.builder().message("Password mismatch").build();
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return MessageResponse.builder().message("Password updated successfully").build();   
     }       
 
 }

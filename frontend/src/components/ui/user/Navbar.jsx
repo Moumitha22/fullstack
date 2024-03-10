@@ -1,10 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../../../services/auth';
+import { useDispatch } from 'react-redux';
+import { setAuthentication, setToken, setRole } from '../../../redux/authSlice';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate(); 
+  const dispatch = useDispatch();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    dispatch(setAuthentication(false))
+    dispatch(setToken(''));
+    dispatch(setRole({}));
+    navigate('/signin');
   };
 
   return (
@@ -29,7 +43,7 @@ const Navbar = () => {
         </ul>
         </div>
        <div className="flex items-center gap-6">
-          <button className="bg-violet-400 text-white px-5 py-2 rounded-full hover:bg-[#ddd6fe]" ><a href="/signin">Sign Out</a></button>
+          <button className="bg-violet-400 text-white px-5 py-2 rounded-full hover:bg-[#ddd6fe]" onClick={handleLogout}>Sign Out</button>
           <ion-icon onClick={toggleMenu} name={menuOpen ? 'close' : 'menu'} class="text-3xl cursor-pointer md:hidden"></ion-icon> 
         </div> 
       </nav>
